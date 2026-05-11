@@ -86,31 +86,39 @@ android {
         versionName "1.0"
     }
     signingConfigs {
-        debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+         release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            }
         }
     }
     buildTypes {
-        debug {
-            signingConfig signingConfigs.debug
-        }
-        release {
+         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    project.ext.vectoricons = [
+        iconFontNames: ['MaterialIcons.ttf', 'FontAwesome.ttf', 'Ionicons.ttf', 'Feather.ttf', 'AntDesign.ttf','FontAwesome6_Regular','FontAwesome6_Solid.ttf','FontAwesome6_Brands.ttf','MaterialCommunityIcons.ttf','Octicons.ttf','FontAwesome5.ttf']
+        ]
+
+        apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 }
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-
+    implementation("com.facebook.fresco:animated-gif:3.6.0")
+ // For WebP support, including animated WebP
+    implementation("com.facebook.fresco:animated-webp:3.6.0")
+    implementation("com.facebook.fresco:webpsupport:3.6.0")
+    implementation("com.android.support:support-core-utils:24.2.1")
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

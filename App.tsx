@@ -6,13 +6,20 @@
  */
 
 import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { useEffect } from 'react';
+import BootSplash from 'react-native-bootsplash';
 
 function App() {
+  useEffect(() => {
+    setTimeout(async () => {
+      await BootSplash.hide({ fade: true });
+    }, 3000);
+  }, []);
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
@@ -28,10 +35,11 @@ function AppContent() {
 
   return (
     <View style={styles.container}>
-      <NewAppScreen
+      <Text className='text-red-500'>Hello World</Text>
+      {/* <NewAppScreen
         templateFileName="App.tsx"
         safeAreaInsets={safeAreaInsets}
-      />
+      /> */}
     </View>
   );
 }
