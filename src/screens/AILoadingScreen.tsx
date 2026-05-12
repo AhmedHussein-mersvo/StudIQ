@@ -1,11 +1,11 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import HeaderBar from '../layout/HeaderBar';
 import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import type { DocumentPickerResponse } from '@react-native-documents/picker';
-import { boldFont, COLORS, regularFont } from '../utils/font';
-import { isLargeScreen, isXLargeScreen } from '../utils/config';
+import AILoadingContent from '../components/AILoading/AILoadingContent';
+import HeaderBar from '../layout/HeaderBar';
+import { generateSummary, type StudyResult } from '../services/aiServices';
 
-const STEPS = [
+const AI_GENERATION_STEPS = [
   'Extracting text',
   'Understanding lecture',
   'Generating quiz',
@@ -26,15 +26,59 @@ export default function AILoadingScreen({
   route,
 }: AILoadingScreenProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [studyResult, setStudyResult] = useState<StudyResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const file = route?.params?.file;
   const fileName = route?.params?.file?.name;
 
   useEffect(() => {
-    if (currentStepIndex === STEPS.length - 1) {
+    let isMounted = true;
+
+    if (!file) {
+      setErrorMessage('No uploaded document was found.');
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    generateSummary(file)
+      .then(result => {
+        if (isMounted) {
+          setStudyResult(result);
+        }
+      })
+      .catch(error => {
+        if (isMounted) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : 'Unable to generate study materials.',
+          );
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [file]);
+
+  useEffect(() => {
+    const isFinalStep = currentStepIndex === AI_GENERATION_STEPS.length - 1;
+    const hasFinishedGenerating = studyResult || errorMessage;
+
+    if (isFinalStep && hasFinishedGenerating) {
       const doneTimer = setTimeout(() => {
-        navigation.replace('ResultScreen');
+        navigation.replace('ResultScreen', {
+          errorMessage,
+          result: studyResult,
+        });
       }, 700);
 
       return () => clearTimeout(doneTimer);
+    }
+
+    if (isFinalStep) {
+      return undefined;
     }
 
     const stepTimer = setTimeout(() => {
@@ -42,47 +86,16 @@ export default function AILoadingScreen({
     }, 900);
 
     return () => clearTimeout(stepTimer);
-  }, [currentStepIndex, navigation]);
+  }, [currentStepIndex, errorMessage, navigation, studyResult]);
 
   return (
     <View style={styles.container}>
       <HeaderBar navigation={navigation} />
-      <View className="flex-1 justify-center items-center gap-5 px-4">
-        <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={styles.title}>Generating Study Materials...</Text>
-        {fileName ? (
-          <Text style={styles.fileName} numberOfLines={1}>
-            Processing {fileName}
-          </Text>
-        ) : null}
-        <View className="gap-3">
-          {STEPS.map((step, index) => {
-            const isDone = index < currentStepIndex;
-            const isActive = index === currentStepIndex;
-
-            return (
-              <View key={step} className="flex-row items-center gap-3">
-                <Text
-                  style={[
-                    styles.stepMarker,
-                    isDone || isActive ? styles.activeStep : styles.pendingStep,
-                  ]}
-                >
-                  {isDone ? '✓' : isActive ? '•' : '○'}
-                </Text>
-                <Text
-                  style={[
-                    styles.stepText,
-                    isDone || isActive ? styles.activeStep : styles.pendingStep,
-                  ]}
-                >
-                  {step}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
+      <AILoadingContent
+        steps={AI_GENERATION_STEPS}
+        currentStepIndex={currentStepIndex}
+        fileName={fileName}
+      />
     </View>
   );
 }
@@ -90,32 +103,5 @@ export default function AILoadingScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  title: {
-    fontSize: isXLargeScreen ? 24 : isLargeScreen ? 20 : 18,
-    fontFamily: boldFont,
-    marginTop: isLargeScreen ? 20 : 10,
-    color: COLORS.white,
-  },
-  fileName: {
-    maxWidth: '90%',
-    fontFamily: regularFont,
-    fontSize: isLargeScreen ? 16 : 14,
-    color: 'rgba(255, 255, 255, 0.72)',
-  },
-  stepMarker: {
-    width: isLargeScreen ? 24 : 20,
-    fontSize: isXLargeScreen ? 22 : isLargeScreen ? 20 : 18,
-    fontFamily: boldFont,
-  },
-  stepText: {
-    fontSize: isXLargeScreen ? 20 : isLargeScreen ? 18 : 16,
-    fontFamily: regularFont,
-  },
-  activeStep: {
-    color: COLORS.accent,
-  },
-  pendingStep: {
-    color: 'rgba(255, 255, 255, 0.64)',
   },
 });

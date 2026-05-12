@@ -9,7 +9,10 @@ const profilePadding = isLargeScreen ? 14 : 10;
 export default function HeaderBar({ navigation }: { navigation: any }) {
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/logo.png')} style={styles.logo} />
+      <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')}>
+        <Image source={require('../assets/logo.png')} style={styles.logo} />
+      </TouchableOpacity>
+      
       <TouchableOpacity
         style={styles.profileMenu}
         onPress={() => navigation.navigate('ProfileScreen')}

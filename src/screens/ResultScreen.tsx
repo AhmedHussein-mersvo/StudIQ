@@ -1,11 +1,26 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import HeaderBar from '../layout/HeaderBar';
-import { fakeResult } from '../utils/fakeData';
 import { isLargeScreen, isXLargeScreen } from '../utils/config';
 import { boldFont, mediumFont, regularFont, semiBoldFont } from '../utils/font';
+import type { StudyResult } from '../services/aiServices';
 
-export default function ResultScreen({ navigation }: { navigation: any }) {
+type ResultScreenProps = {
+  navigation: any;
+  route?: {
+    params?: {
+      errorMessage?: string | null;
+      result?: StudyResult | null;
+    };
+  };
+};
+
+export default function ResultScreen({ navigation, route }: ResultScreenProps) {
+  const result = route?.params?.result;
+  const errorMessage = route?.params?.errorMessage;
+  const keyPoints = result?.keyPoints ?? [];
+  const questions = result?.questions ?? [];
+
   return (
     <View className="flex-1">
       <HeaderBar navigation={navigation} />
@@ -28,79 +43,85 @@ export default function ResultScreen({ navigation }: { navigation: any }) {
               </Text>
             </View>
             <Text style={styles.title} className="text-white">
-              {fakeResult.title}
+              {result?.title ?? 'AI result unavailable'}
             </Text>
             <Text style={styles.summary} className="mt-3 text-white/70">
-              {fakeResult.summary}
+              {result?.summary ??
+                errorMessage ??
+                'Upload another file and try generating study materials again.'}
             </Text>
           </View>
 
-          <View style={styles.sectionCard} className="rounded-3xl border border-white/10 bg-white/10 p-5">
-            <View className="mb-4 flex-row items-center gap-2">
-              <MaterialIcons name="check-circle" size={isLargeScreen ? 26 : 22} color="#22C55E" />
-              <Text style={styles.sectionTitle} className="text-white">
-                Key points
-              </Text>
-            </View>
-            <View className="gap-3">
-              {fakeResult.keyPoints.map((point, index) => (
-                <View key={point} className="flex-row gap-3 rounded-2xl bg-black/20 p-4">
-                  <Text style={styles.pointNumber} className="text-blue-300">
-                    {index + 1}
-                  </Text>
-                  <Text style={styles.bodyText} className="flex-1 text-white/80">
-                    {point}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.sectionCard} className="rounded-3xl border border-white/10 bg-white/10 p-5">
-            <View className="mb-4 flex-row items-center gap-2">
-              <MaterialIcons name="quiz" size={isLargeScreen ? 26 : 22} color="#60A5FA" />
-              <Text style={styles.sectionTitle} className="text-white">
-                Practice questions
-              </Text>
-            </View>
-            <View className="gap-4">
-              {fakeResult.questions.map((item, questionIndex) => (
-                <View key={item.question} className="rounded-2xl bg-black/20 p-4">
-                  <Text style={styles.questionText} className="text-white">
-                    {questionIndex + 1}. {item.question}
-                  </Text>
-                  <View className="mt-3 gap-2">
-                    {item.options.map(option => {
-                      const isAnswer = option === item.answer;
-
-                      return (
-                        <View
-                          key={option}
-                          className={`flex-row items-center gap-2 rounded-xl border p-3 ${
-                            isAnswer
-                              ? 'border-emerald-400/60 bg-emerald-500/15'
-                              : 'border-white/10 bg-white/5'
-                          }`}
-                        >
-                          <MaterialIcons
-                            name={isAnswer ? 'check-circle' : 'radio-button-unchecked'}
-                            size={18}
-                            color={isAnswer ? '#34D399' : 'rgba(255,255,255,0.55)'}
-                          />
-                          <Text
-                            style={styles.optionText}
-                            className={isAnswer ? 'text-emerald-100' : 'text-white/70'}
-                          >
-                            {option}
-                          </Text>
-                        </View>
-                      );
-                    })}
+          {keyPoints.length > 0 ? (
+            <View style={styles.sectionCard} className="rounded-3xl border border-white/10 bg-white/10 p-5">
+              <View className="mb-4 flex-row items-center gap-2">
+                <MaterialIcons name="check-circle" size={isLargeScreen ? 26 : 22} color="#22C55E" />
+                <Text style={styles.sectionTitle} className="text-white">
+                  Key points
+                </Text>
+              </View>
+              <View className="gap-3">
+                {keyPoints.map((point, index) => (
+                  <View key={point} className="flex-row gap-3 rounded-2xl bg-black/20 p-4">
+                    <Text style={styles.pointNumber} className="text-blue-300">
+                      {index + 1}
+                    </Text>
+                    <Text style={styles.bodyText} className="flex-1 text-white/80">
+                      {point}
+                    </Text>
                   </View>
-                </View>
-              ))}
+                ))}
+              </View>
             </View>
-          </View>
+          ) : null}
+
+          {questions.length > 0 ? (
+            <View style={styles.sectionCard} className="rounded-3xl border border-white/10 bg-white/10 p-5">
+              <View className="mb-4 flex-row items-center gap-2">
+                <MaterialIcons name="quiz" size={isLargeScreen ? 26 : 22} color="#60A5FA" />
+                <Text style={styles.sectionTitle} className="text-white">
+                  Practice questions
+                </Text>
+              </View>
+              <View className="gap-4">
+                {questions.map((item, questionIndex) => (
+                  <View key={item.question} className="rounded-2xl bg-black/20 p-4">
+                    <Text style={styles.questionText} className="text-white">
+                      {questionIndex + 1}. {item.question}
+                    </Text>
+                    <View className="mt-3 gap-2">
+                      {item.options.map(option => {
+                        const isAnswer = option === item.answer;
+
+                        return (
+                          <View
+                            key={option}
+                            className={`flex-row items-center gap-2 rounded-xl border p-3 ${
+                              isAnswer
+                                ? 'border-emerald-400/60 bg-emerald-500/15'
+                                : 'border-white/10 bg-white/5'
+                            }`}
+                          >
+                            <MaterialIcons
+                              name={isAnswer ? 'check-circle' : 'radio-button-unchecked'}
+                              size={18}
+                              color={isAnswer ? '#34D399' : 'rgba(255,255,255,0.55)'}
+                            />
+                            <Text
+                              style={styles.optionText}
+                              className={isAnswer ? 'text-emerald-100' : 'text-white/70'}
+                            >
+                              {option}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </View>
