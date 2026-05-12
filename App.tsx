@@ -1,53 +1,41 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import { useEffect } from 'react';
+import './global.css';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import BootSplash from 'react-native-bootsplash';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useEffect } from 'react';
+import HomeScreen from './src/screens/HomeScreen';
+import AILoadingScreen from './src/screens/AILoadingScreen';
+import QuizScreen from './src/screens/QuizScreen';
+import ResultScreen from './src/screens/ResultScreen';
+import SplashScreen from './src/screens/SplashScreen';
+import AppBackground from './src/layout/AppBackground';
+const Stack = createStackNavigator();
 
-function App() {
+export default function App() {
   useEffect(() => {
-    setTimeout(async () => {
-      await BootSplash.hide({ fade: true });
-    }, 3000);
+    BootSplash.hide({ fade: true });
   }, []);
-  const isDarkMode = useColorScheme() === 'dark';
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <NavigationContainer>
+        <AppBackground>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: 'transparent' },
+            }}
+            initialRouteName="HomeScreen"
+          >
+            <Stack.Screen name="SplashScreen" component={SplashScreen} />
+            <Stack.Screen name="HomeScreen" component={HomeScreen} />
+            <Stack.Screen name="AILoadingScreen" component={AILoadingScreen} />
+            <Stack.Screen name="QuizScreen" component={QuizScreen} />
+            <Stack.Screen name="ResultScreen" component={ResultScreen} />
+          </Stack.Navigator>
+        </AppBackground>
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <Text className='text-red-500'>Hello World</Text>
-      {/* <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      /> */}
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default App;

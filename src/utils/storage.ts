@@ -29,7 +29,7 @@ export function deleteAllFromStorage() {
     try {
         storage.clearAll();
     }
-    catch (e) {
+    catch {
         console.log("can't delete all storage.");
     }
 }
