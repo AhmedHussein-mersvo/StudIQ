@@ -1,6 +1,8 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { getPalette } from '../../theme/palette';
+import { useThemeStore } from '../../theme/themeStore';
 import { isLargeScreen, isXLargeScreen } from '../../utils/config';
-import { boldFont, COLORS, regularFont } from '../../utils/font';
+import { boldFont, regularFont } from '../../utils/font';
 
 type AILoadingContentProps = {
   currentStepIndex: number;
@@ -9,20 +11,28 @@ type AILoadingContentProps = {
 };
 
 type LoadingStepProps = {
+  activeColor: string;
   isActive: boolean;
   isDone: boolean;
   label: string;
+  pendingColor: string;
 };
 
-function LoadingStep({ isActive, isDone, label }: LoadingStepProps) {
-  const stateStyle = isDone || isActive ? styles.activeStep : styles.pendingStep;
+function LoadingStep({
+  activeColor,
+  isActive,
+  isDone,
+  label,
+  pendingColor,
+}: LoadingStepProps) {
+  const color = isDone || isActive ? activeColor : pendingColor;
 
   return (
     <View className="flex-row items-center gap-3">
-      <Text style={[styles.stepMarker, stateStyle]}>
+      <Text style={[styles.stepMarker, { color }]}>
         {isDone ? '✓' : isActive ? '•' : '○'}
       </Text>
-      <Text style={[styles.stepText, stateStyle]}>{label}</Text>
+      <Text style={[styles.stepText, { color }]}>{label}</Text>
     </View>
   );
 }
@@ -32,12 +42,20 @@ export default function AILoadingContent({
   fileName,
   steps,
 }: AILoadingContentProps) {
+  const colorScheme = useThemeStore(s => s.colorScheme);
+  const p = getPalette(colorScheme);
+
   return (
     <View className="flex-1 justify-center items-center gap-5 px-4">
-      <ActivityIndicator size="large" color={COLORS.accent} />
-      <Text style={styles.title}>Generating Study Materials...</Text>
+      <ActivityIndicator size="large" color={p.tabActive} />
+      <Text style={[styles.title, { color: p.textPrimary }]}>
+        Generating Study Materials...
+      </Text>
       {fileName ? (
-        <Text style={styles.fileName} numberOfLines={1}>
+        <Text
+          style={[styles.fileName, { color: p.textMuted }]}
+          numberOfLines={1}
+        >
           Processing {fileName}
         </Text>
       ) : null}
@@ -48,6 +66,8 @@ export default function AILoadingContent({
             label={step}
             isDone={index < currentStepIndex}
             isActive={index === currentStepIndex}
+            activeColor={p.tabActive}
+            pendingColor={p.textSubtle}
           />
         ))}
       </View>
@@ -60,13 +80,11 @@ const styles = StyleSheet.create({
     fontSize: isXLargeScreen ? 24 : isLargeScreen ? 20 : 18,
     fontFamily: boldFont,
     marginTop: isLargeScreen ? 20 : 10,
-    color: COLORS.white,
   },
   fileName: {
     maxWidth: '90%',
     fontFamily: regularFont,
     fontSize: isLargeScreen ? 16 : 14,
-    color: 'rgba(255, 255, 255, 0.72)',
   },
   stepMarker: {
     width: isLargeScreen ? 24 : 20,
@@ -76,11 +94,5 @@ const styles = StyleSheet.create({
   stepText: {
     fontSize: isXLargeScreen ? 20 : isLargeScreen ? 18 : 16,
     fontFamily: regularFont,
-  },
-  activeStep: {
-    color: COLORS.accent,
-  },
-  pendingStep: {
-    color: 'rgba(255, 255, 255, 0.64)',
   },
 });
