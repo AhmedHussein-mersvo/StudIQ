@@ -35,6 +35,9 @@ local.properties
 !debug.keystore
 .kotlin/
 
+# Secrets (OpenRouter, etc.)
+.env
+
 # node.js
 #
 node_modules/

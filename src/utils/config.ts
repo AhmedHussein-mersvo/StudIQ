@@ -14,6 +14,3 @@ export const isXXXXXXLargeScreen = width >= 3840;
 export const isXXXXXXXLargeScreen = width >= 5120;
 export const isXXXXXXXXLargeScreen = width >= 6400;
 export const isXXXXXXXXXLargeScreen = width >= 7680;
-
-
-export const API_KEY = '';

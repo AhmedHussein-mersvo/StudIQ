@@ -4,6 +4,9 @@ import type { DocumentPickerResponse } from '@react-native-documents/picker';
 import AILoadingContent from '../components/AILoading/AILoadingContent';
 import HeaderBar from '../layout/HeaderBar';
 import { generateSummary, type StudyResult } from '../services/aiServices';
+import { appendRecentStudy } from '../services/recentStudiesStorage';
+import { getFileTypePresentation } from '../utils/fileTypePresentation';
+import { getScreenContentPaddingHorizontal } from '../utils/screenPadding';
 
 const AI_GENERATION_STEPS = [
   'Extracting text',
@@ -68,9 +71,26 @@ export default function AILoadingScreen({
 
     if (isFinalStep && hasFinishedGenerating) {
       const doneTimer = setTimeout(() => {
+        if (file && studyResult) {
+          const { iconName, color } = getFileTypePresentation(
+            file.name,
+            file.type,
+          );
+          appendRecentStudy({
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+            fileName: file.name ?? 'Document',
+            iconName,
+            iconColor: color,
+            createdAt: Date.now(),
+            result: studyResult,
+            errorMessage: null,
+          });
+        }
+
         navigation.replace('ResultScreen', {
           errorMessage,
           result: studyResult,
+          fileName: file?.name ?? undefined,
         });
       }, 700);
 
@@ -86,11 +106,11 @@ export default function AILoadingScreen({
     }, 900);
 
     return () => clearTimeout(stepTimer);
-  }, [currentStepIndex, errorMessage, navigation, studyResult]);
+  }, [currentStepIndex, errorMessage, file, navigation, studyResult]);
 
   return (
     <View style={styles.container}>
-      <HeaderBar navigation={navigation} />
+      <HeaderBar />
       <AILoadingContent
         steps={AI_GENERATION_STEPS}
         currentStepIndex={currentStepIndex}
@@ -103,5 +123,6 @@ export default function AILoadingScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: getScreenContentPaddingHorizontal(),
   },
 });

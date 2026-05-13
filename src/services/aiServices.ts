@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { DocumentPickerResponse } from '@react-native-documents/picker';
-import { API_KEY } from '../utils/config';
+import { OPENROUTER_API_KEY } from '@env';
 
 const OPENROUTER_MODELS = [
   'google/gemma-4-26b-a4b-it:free',
@@ -181,7 +181,7 @@ export const generateSummary = async (
           },
           {
             headers: {
-              Authorization: `Bearer ${API_KEY}`,
+              Authorization: `Bearer ${OPENROUTER_API_KEY}`,
               'Content-Type': 'application/json',
             },
           },

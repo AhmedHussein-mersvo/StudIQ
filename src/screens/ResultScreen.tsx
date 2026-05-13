@@ -1,51 +1,107 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import PracticeQuestionCard from '../components/Result/PracticeQuestionCard';
 import HeaderBar from '../layout/HeaderBar';
-import { isLargeScreen, isXLargeScreen } from '../utils/config';
-import { boldFont, mediumFont, regularFont, semiBoldFont } from '../utils/font';
+import { navigationRef } from '../navigation/navigationRef';
 import type { StudyResult } from '../services/aiServices';
+import { getPalette } from '../theme/palette';
+import { useThemeStore } from '../theme/themeStore';
+import { isLargeScreen, isXLargeScreen } from '../utils/config';
+import { getScreenContentPaddingHorizontal } from '../utils/screenPadding';
+import { boldFont, mediumFont, regularFont, semiBoldFont } from '../utils/font';
 
 type ResultScreenProps = {
-  navigation: any;
   route?: {
     params?: {
       errorMessage?: string | null;
       result?: StudyResult | null;
+      fileName?: string;
     };
   };
 };
 
-export default function ResultScreen({ navigation, route }: ResultScreenProps) {
+export default function ResultScreen({ route }: ResultScreenProps) {
+  const colorScheme = useThemeStore(s => s.colorScheme);
+  const p = getPalette(colorScheme);
+
   const result = route?.params?.result;
   const errorMessage = route?.params?.errorMessage;
+  const sourceFileName = route?.params?.fileName;
   const keyPoints = result?.keyPoints ?? [];
   const questions = result?.questions ?? [];
 
+  const carouselMinH = isLargeScreen ? 320 : 280;
+  const [pageWidth, setPageWidth] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const listRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    setActiveIndex(0);
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [result?.title, questions.length]);
+
+  const onCarouselLayout = (e: { nativeEvent: { layout: { width: number } } }) => {
+    const w = e.nativeEvent.layout.width;
+    if (w > 0 && Math.abs(w - pageWidth) > 0.5) {
+      setPageWidth(w);
+    }
+  };
+
+  const onMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (pageWidth <= 0) {
+      return;
+    }
+    const idx = Math.round(e.nativeEvent.contentOffset.x / pageWidth);
+    setActiveIndex(Math.max(0, Math.min(questions.length - 1, idx)));
+  };
+
+  const cardShell = {
+    borderColor: p.cardBorder,
+    backgroundColor: p.cardBg,
+    borderWidth: StyleSheet.hairlineWidth,
+  };
+
   return (
-    <View className="flex-1">
-      <HeaderBar navigation={navigation} />
+    <View style={styles.flex}>
+      <HeaderBar />
       <ScrollView
-        className="flex-1"
+        style={styles.flex}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content} className="gap-5">
-          <View
-            style={styles.heroCard}
-            className="overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-5"
-          >
+          <View style={[styles.heroCard, cardShell]} className="overflow-hidden rounded-3xl p-5">
             <View className="mb-4 flex-row items-center gap-3">
               <View className="items-center justify-center rounded-2xl bg-violet-500/25 p-3">
                 <MaterialIcons name="auto-awesome" size={isLargeScreen ? 30 : 24} color="#A78BFA" />
               </View>
-              <Text style={styles.eyebrow} className="text-violet-200">
+              <Text style={[styles.eyebrow, { color: p.eyebrow }]}>
                 AI generated result
               </Text>
             </View>
-            <Text style={styles.title} className="text-white">
+            <Text style={[styles.title, { color: p.textPrimary }]}>
               {result?.title ?? 'AI result unavailable'}
             </Text>
-            <Text style={styles.summary} className="mt-3 text-white/70">
+            {sourceFileName ? (
+              <Text
+                style={[styles.sourceFile, { color: p.textMuted }]}
+                className="mt-2"
+                numberOfLines={2}
+              >
+                {sourceFileName}
+              </Text>
+            ) : null}
+            <Text style={[styles.summary, { color: p.textSecondary }]} className="mt-3">
               {result?.summary ??
                 errorMessage ??
                 'Upload another file and try generating study materials again.'}
@@ -53,20 +109,27 @@ export default function ResultScreen({ navigation, route }: ResultScreenProps) {
           </View>
 
           {keyPoints.length > 0 ? (
-            <View style={styles.sectionCard} className="rounded-3xl border border-white/10 bg-white/10 p-5">
+            <View style={[styles.sectionCard, cardShell]} className="rounded-3xl p-5">
               <View className="mb-4 flex-row items-center gap-2">
                 <MaterialIcons name="check-circle" size={isLargeScreen ? 26 : 22} color="#22C55E" />
-                <Text style={styles.sectionTitle} className="text-white">
+                <Text style={[styles.sectionTitle, { color: p.textPrimary }]}>
                   Key points
                 </Text>
               </View>
               <View className="gap-3">
                 {keyPoints.map((point, index) => (
-                  <View key={point} className="flex-row gap-3 rounded-2xl bg-black/20 p-4">
-                    <Text style={styles.pointNumber} className="text-blue-300">
+                  <View
+                    key={point}
+                    style={[
+                      styles.pointRow,
+                      { backgroundColor: p.rowBg },
+                    ]}
+                    className="flex-row gap-3 rounded-2xl p-4"
+                  >
+                    <Text style={[styles.pointNumber, { color: p.pointNumber }]}>
                       {index + 1}
                     </Text>
-                    <Text style={styles.bodyText} className="flex-1 text-white/80">
+                    <Text style={[styles.bodyText, { color: p.textSecondary }]} className="flex-1">
                       {point}
                     </Text>
                   </View>
@@ -76,50 +139,85 @@ export default function ResultScreen({ navigation, route }: ResultScreenProps) {
           ) : null}
 
           {questions.length > 0 ? (
-            <View style={styles.sectionCard} className="rounded-3xl border border-white/10 bg-white/10 p-5">
+            <View style={[styles.sectionCard, cardShell]} className="rounded-3xl p-5">
               <View className="mb-4 flex-row items-center gap-2">
                 <MaterialIcons name="quiz" size={isLargeScreen ? 26 : 22} color="#60A5FA" />
-                <Text style={styles.sectionTitle} className="text-white">
+                <Text style={[styles.sectionTitle, { color: p.textPrimary }]}>
                   Practice questions
                 </Text>
               </View>
-              <View className="gap-4">
-                {questions.map((item, questionIndex) => (
-                  <View key={item.question} className="rounded-2xl bg-black/20 p-4">
-                    <Text style={styles.questionText} className="text-white">
-                      {questionIndex + 1}. {item.question}
-                    </Text>
-                    <View className="mt-3 gap-2">
-                      {item.options.map(option => {
-                        const isAnswer = option === item.answer;
-
-                        return (
-                          <View
-                            key={option}
-                            className={`flex-row items-center gap-2 rounded-xl border p-3 ${
-                              isAnswer
-                                ? 'border-emerald-400/60 bg-emerald-500/15'
-                                : 'border-white/10 bg-white/5'
-                            }`}
-                          >
-                            <MaterialIcons
-                              name={isAnswer ? 'check-circle' : 'radio-button-unchecked'}
-                              size={18}
-                              color={isAnswer ? '#34D399' : 'rgba(255,255,255,0.55)'}
-                            />
-                            <Text
-                              style={styles.optionText}
-                              className={isAnswer ? 'text-emerald-100' : 'text-white/70'}
-                            >
-                              {option}
-                            </Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  </View>
+              <View
+                style={[styles.carouselWrap, { minHeight: carouselMinH }]}
+                onLayout={onCarouselLayout}
+              >
+                {pageWidth > 0 ? (
+                  <FlatList
+                    ref={listRef}
+                    data={questions}
+                    horizontal
+                    pagingEnabled
+                    nestedScrollEnabled
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={(_, index) => `practice-${index}`}
+                    snapToInterval={pageWidth}
+                    snapToAlignment="start"
+                    decelerationRate="fast"
+                    disableIntervalMomentum
+                    onMomentumScrollEnd={onMomentumScrollEnd}
+                    getItemLayout={(_, index) => ({
+                      length: pageWidth,
+                      offset: pageWidth * index,
+                      index,
+                    })}
+                    style={{ minHeight: carouselMinH }}
+                    renderItem={({ item, index }) => (
+                      <View style={{ width: pageWidth, minHeight: carouselMinH }}>
+                        <PracticeQuestionCard
+                          item={item}
+                          questionIndex={index}
+                          palette={p}
+                          colorScheme={colorScheme}
+                        />
+                      </View>
+                    )}
+                  />
+                ) : null}
+              </View>
+              <Text style={[styles.pagerCaption, { color: p.textMuted }]}>
+                Question {activeIndex + 1} / {questions.length}
+              </Text>
+              <View style={styles.dotsRow}>
+                {questions.map((_, i) => (
+                  <View
+                    key={`dot-${i}`}
+                    style={[
+                      styles.dot,
+                      i === activeIndex
+                        ? [styles.dotActive, { backgroundColor: p.tabActive }]
+                        : { backgroundColor: p.textMuted, opacity: 0.35 },
+                    ]}
+                  />
                 ))}
               </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (navigationRef.isReady()) {
+                    navigationRef.navigate('MainTabs', {
+                      screen: 'Quiz',
+                      params: {
+                        questions,
+                        quizTitle: result?.title,
+                      },
+                    });
+                  }
+                }}
+                style={styles.quizCta}
+              >
+                <Text style={[styles.quizCtaText, { color: p.tabActive }]}>
+                  Open full quiz
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : null}
         </View>
@@ -129,9 +227,13 @@ export default function ResultScreen({ navigation, route }: ResultScreenProps) {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   scrollContent: {
     paddingTop: isLargeScreen ? 28 : 18,
     paddingBottom: isLargeScreen ? 40 : 28,
+    paddingHorizontal: getScreenContentPaddingHorizontal(),
   },
   content: {
     width: '100%',
@@ -144,6 +246,43 @@ const styles = StyleSheet.create({
   sectionCard: {
     padding: isLargeScreen ? 24 : 18,
   },
+  pointRow: {},
+  carouselWrap: {
+    width: '100%',
+  },
+  pagerCaption: {
+    fontFamily: mediumFont,
+    fontSize: isLargeScreen ? 15 : 13,
+    textAlign: 'center',
+    marginTop: isLargeScreen ? 14 : 10,
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: isLargeScreen ? 12 : 8,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotActive: {
+    width: 18,
+    borderRadius: 4,
+    opacity: 1,
+  },
+  quizCta: {
+    alignSelf: 'center',
+    marginTop: isLargeScreen ? 18 : 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  quizCtaText: {
+    fontFamily: semiBoldFont,
+    fontSize: isLargeScreen ? 16 : 14,
+  },
   eyebrow: {
     fontFamily: mediumFont,
     fontSize: isLargeScreen ? 16 : 13,
@@ -154,6 +293,11 @@ const styles = StyleSheet.create({
     fontFamily: boldFont,
     fontSize: isXLargeScreen ? 36 : isLargeScreen ? 32 : 26,
     lineHeight: (isXLargeScreen ? 36 : isLargeScreen ? 32 : 26) * 1.18,
+  },
+  sourceFile: {
+    fontFamily: mediumFont,
+    fontSize: isLargeScreen ? 15 : 13,
+    lineHeight: (isLargeScreen ? 15 : 13) * 1.4,
   },
   summary: {
     fontFamily: regularFont,
@@ -172,15 +316,5 @@ const styles = StyleSheet.create({
     fontFamily: regularFont,
     fontSize: isLargeScreen ? 17 : 15,
     lineHeight: (isLargeScreen ? 17 : 15) * 1.45,
-  },
-  questionText: {
-    fontFamily: semiBoldFont,
-    fontSize: isLargeScreen ? 18 : 16,
-    lineHeight: (isLargeScreen ? 18 : 16) * 1.35,
-  },
-  optionText: {
-    flex: 1,
-    fontFamily: regularFont,
-    fontSize: isLargeScreen ? 16 : 14,
   },
 });

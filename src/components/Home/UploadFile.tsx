@@ -8,9 +8,13 @@ import {
   width,
 } from '../../utils/config';
 import { boldFont, mediumFont, regularFont } from '../../utils/font';
+import { getPalette } from '../../theme/palette';
+import { useThemeStore } from '../../theme/themeStore';
+
 type UploadFileProps = {
   onUploadFile: () => void;
 };
+
 const cardPadding = isXLargeScreen ? 28 : isLargeScreen ? 24 : 18;
 const cardRadius = isLargeScreen ? 28 : 22;
 const imageSize = isXLargeScreen
@@ -26,22 +30,28 @@ const buttonHeight = isLargeScreen ? 56 : 48;
 const buttonWidth = Math.min(width * (isLargeScreen ? 0.34 : 0.46), 220);
 
 export default function UploadFile({ onUploadFile }: UploadFileProps) {
+  const colorScheme = useThemeStore(s => s.colorScheme);
+  const p = getPalette(colorScheme);
+
   return (
     <LinearGradient
-      colors={['rgba(124, 58, 237, 0.26)', 'rgba(59, 130, 246, 0.16)']}
+      colors={p.uploadCardGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.container}
-      className="flex-row items-center justify-between overflow-hidden border border-white/10"
+      style={[
+        styles.container,
+        { borderColor: p.uploadCardBorder, borderWidth: StyleSheet.hairlineWidth },
+      ]}
+      className="flex-row items-center justify-between overflow-hidden"
     >
       <View style={styles.copy} className="flex-1">
-        <Text className="text-white" style={styles.title}>
+        <Text style={[styles.title, { color: p.uploadTitle }]}>
           Upload any file to get started
         </Text>
-        <Text className="text-white/70" style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: p.uploadSubtitle }]}>
           PDF, DOC, XLS, PPT
         </Text>
-        <Text className="text-white/70" style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: p.uploadSubtitle }]}>
           and get AI study Materials
         </Text>
         <TouchableOpacity
@@ -51,7 +61,7 @@ export default function UploadFile({ onUploadFile }: UploadFileProps) {
           onPress={onUploadFile}
         >
           <LinearGradient
-            colors={['#7C3AED', '#3B82F6']}
+            colors={p.buttonGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.buttonGradient}
@@ -60,11 +70,9 @@ export default function UploadFile({ onUploadFile }: UploadFileProps) {
             <MaterialIcons
               name="add"
               size={isLargeScreen ? 26 : 22}
-              color="white"
+              color="#FFFFFF"
             />
-            <Text className="text-white" style={styles.buttonText}>
-              Upload File
-            </Text>
+            <Text style={styles.buttonText}>Upload File</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -110,6 +118,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: mediumFont,
     fontSize: isLargeScreen ? 17 : 15,
+    color: '#FFFFFF',
   },
   image: {
     width: imageSize,

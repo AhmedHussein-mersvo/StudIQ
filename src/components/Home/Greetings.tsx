@@ -1,18 +1,26 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { boldFont, regularFont } from '../../utils/font';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { getPalette } from '../../theme/palette';
+import { useThemeStore } from '../../theme/themeStore';
+import { boldFont, regularFont } from '../../utils/font';
+
 type GreetingsProps = {
   name: string;
 };
 
 export default function Greetings({ name }: GreetingsProps) {
+  const colorScheme = useThemeStore(s => s.colorScheme);
+  const p = getPalette(colorScheme);
+
   return (
-    <View className="flex-1">
+    <View style={styles.wrap}>
       <View className="flex-row items-center gap-2">
-        <Text className="text-2xl font-bold text-white" style={styles.title}>Hello, {name}</Text>
-        <MaterialIcons name="waving-hand" size={24} color={'#fbcb42'} />
+        <Text style={[styles.title, { color: p.textPrimary }]}>
+          Hello, {name}
+        </Text>
+        <MaterialIcons name="waving-hand" size={24} color="#fbcb42" />
       </View>
-      <Text className="text-base text-white" style={styles.subtitle}>
+      <Text style={[styles.subtitle, { color: p.textMuted }]}>
         What would you like to learn today?
       </Text>
     </View>
@@ -20,10 +28,16 @@ export default function Greetings({ name }: GreetingsProps) {
 }
 
 const styles = StyleSheet.create({
+  wrap: {
+    flex: 1,
+  },
   subtitle: {
     fontFamily: regularFont,
+    marginTop: 4,
   },
   title: {
     fontFamily: boldFont,
+    fontSize: 24,
+    lineHeight: 30,
   },
 });

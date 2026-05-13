@@ -11,7 +11,7 @@ export default function SplashScreen({ navigation }: { navigation: any }) {
   const glowOpacity = useRef(new Animated.Value(0.35)).current;
   useEffect(() => {
     setTimeout(() => {
-      navigation.navigate('HomeScreen');
+      navigation.navigate('MainTabs');
     }, 2000);
   }, [navigation]);
   useEffect(() => {
