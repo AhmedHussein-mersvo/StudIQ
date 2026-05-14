@@ -15,13 +15,18 @@ import SplashScreen from './src/screens/SplashScreen';
 import AppBackground from './src/layout/AppBackground';
 import { getPalette } from './src/theme/palette';
 import { useThemeStore } from './src/theme/themeStore';
+import { NativeModules, Platform } from 'react-native';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 function ThemedNavigation() {
   const colorScheme = useThemeStore(s => s.colorScheme);
   const p = getPalette(colorScheme);
-
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NativeModules.ImmersiveMode.enterImmersiveMode();
+    }
+  }, []);
   const navigationTheme = useMemo(() => {
     const base = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
     return {
