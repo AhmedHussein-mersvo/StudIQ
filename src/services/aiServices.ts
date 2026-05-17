@@ -129,11 +129,23 @@ const readFileAsDataUrl = async (file: DocumentPickerResponse) => {
   });
 };
 
+const assertOpenRouterApiKey = () => {
+  if (!OPENROUTER_API_KEY?.trim()) {
+    throw new Error(
+      'OpenRouter API key is missing. Add OPENROUTER_API_KEY to .env, restart Metro with --reset-cache, then rebuild the app.',
+    );
+  }
+};
+
 const getOpenRouterErrorMessage = (error: unknown) => {
   if (axios.isAxiosError(error)) {
     const responseMessage = error.response?.data?.error?.message;
 
     if (typeof responseMessage === 'string') {
+      if (/user not found/i.test(responseMessage)) {
+        return 'Invalid OpenRouter API key. Check OPENROUTER_API_KEY in .env, restart Metro with --reset-cache, then rebuild the app.';
+      }
+
       return responseMessage;
     }
 
@@ -151,6 +163,7 @@ export const generateSummary = async (
   file: DocumentPickerResponse,
 ): Promise<StudyResult> => {
   try {
+    assertOpenRouterApiKey();
     const fileData = await readFileAsDataUrl(file);
     let lastError: unknown;
 
