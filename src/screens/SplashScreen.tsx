@@ -1,8 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Image, StyleSheet, Animated } from 'react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../navigation/types';
 import { boldFont, COLORS, regularFont } from '../utils/font';
 
-export default function SplashScreen({ navigation }: { navigation: any }) {
+type Props = StackScreenProps<RootStackParamList, 'SplashScreen'>;
+
+export default function SplashScreen({ navigation }: Props) {
   const titleY = useRef(new Animated.Value(-30)).current;
   const titleOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.7)).current;
@@ -10,9 +14,10 @@ export default function SplashScreen({ navigation }: { navigation: any }) {
   const glowScale = useRef(new Animated.Value(0.92)).current;
   const glowOpacity = useRef(new Animated.Value(0.35)).current;
   useEffect(() => {
-    setTimeout(() => {
-      navigation.navigate('MainTabs');
+    const timer = setTimeout(() => {
+      navigation.replace('MainTabs');
     }, 2000);
+    return () => clearTimeout(timer);
   }, [navigation]);
   useEffect(() => {
     const introAnimation = Animated.sequence([

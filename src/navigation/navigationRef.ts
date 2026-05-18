@@ -30,3 +30,13 @@ export function navigateToMainTab(screen: keyof MainTabParamList) {
   }
   navigationRef.navigate('MainTabs', { screen: 'Quiz', params: {} });
 }
+
+export function resetToLogin() {
+  if (!navigationRef.isReady()) {
+    return;
+  }
+  navigationRef.reset({
+    index: 0,
+    routes: [{ name: 'Login' }],
+  });
+}

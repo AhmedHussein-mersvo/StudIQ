@@ -32,5 +32,8 @@ export type MainTabParamList = {
 
 export type RootStackParamList = {
   SplashScreen: undefined;
+  Login: undefined;
+  Register: { country?: string } | undefined;
+  CountrySelect: { currentCountry?: string } | undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
 };

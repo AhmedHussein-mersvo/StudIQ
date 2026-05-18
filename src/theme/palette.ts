@@ -31,6 +31,14 @@ export type AppPalette = {
   optionDefaultText: string;
   chevron: string;
   carouselFileName: string;
+  inputBg: string;
+  inputBorder: string;
+  inputPlaceholder: string;
+  inputText: string;
+  error: string;
+  googleButtonBg: string;
+  googleButtonBorder: string;
+  divider: string;
 };
 
 export function getPalette(scheme: ColorScheme): AppPalette {
@@ -69,6 +77,14 @@ export function getPalette(scheme: ColorScheme): AppPalette {
       optionDefaultText: 'rgba(255,255,255,0.7)',
       chevron: 'rgba(255,255,255,0.45)',
       carouselFileName: 'rgba(255,255,255,0.9)',
+      inputBg: 'rgba(255,255,255,0.08)',
+      inputBorder: 'rgba(255,255,255,0.14)',
+      inputPlaceholder: 'rgba(255,255,255,0.4)',
+      inputText: '#FFFFFF',
+      error: '#F87171',
+      googleButtonBg: 'rgba(255,255,255,0.1)',
+      googleButtonBorder: 'rgba(255,255,255,0.18)',
+      divider: 'rgba(255,255,255,0.12)',
     };
   }
 
@@ -106,5 +122,13 @@ export function getPalette(scheme: ColorScheme): AppPalette {
     optionDefaultText: 'rgba(15,23,42,0.72)',
     chevron: 'rgba(15,23,42,0.35)',
     carouselFileName: 'rgba(15,23,42,0.88)',
+    inputBg: 'rgba(255,255,255,0.95)',
+    inputBorder: 'rgba(15,23,42,0.12)',
+    inputPlaceholder: 'rgba(15,23,42,0.4)',
+    inputText: '#0F172A',
+    error: '#DC2626',
+    googleButtonBg: '#FFFFFF',
+    googleButtonBorder: 'rgba(15,23,42,0.12)',
+    divider: 'rgba(15,23,42,0.1)',
   };
 }

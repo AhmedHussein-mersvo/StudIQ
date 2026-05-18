@@ -25,7 +25,9 @@ export default function AppBackground({ children }: AppBackgroundProps) {
         backgroundColor="transparent"
         translucent
       />
-      <SafeAreaView style={styles.safeArea}>{children}</SafeAreaView>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        {children}
+      </SafeAreaView>
     </LinearGradient>
   );
 }

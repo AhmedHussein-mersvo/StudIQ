@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -52,17 +52,20 @@ export default function MainTabNavigator() {
         ? 14
         : 18;
 
-  const tabBarBaseHeight = isXLargeScreen
+  const GESTURE_FALLBACK = Platform.OS === 'android' ? 16 : 0;
+  const bottomInset = Math.max(insets.bottom, GESTURE_FALLBACK);
+
+  const tabBarContentHeight = isXLargeScreen
     ? 62
     : isLargeScreen
       ? 58
       : isSmallScreen
-        ? 48
+        ? 56
         : 54;
-  const tabBarHeight = tabBarBaseHeight + insets.bottom;
+  const tabBarHeight = tabBarContentHeight + bottomInset;
 
   const tabBarPadTop = isLargeScreen ? 10 : isSmallScreen ? 6 : 8;
-  const tabBarPadBottom = Math.max(insets.bottom, isSmallScreen ? 4 : 6);
+  const tabBarPadBottom = bottomInset + 4;
 
   const shadowRadius = isLargeScreen ? 16 : isSmallScreen ? 8 : 12;
   const shadowOffsetY = isLargeScreen ? -8 : -5;
@@ -90,10 +93,13 @@ export default function MainTabNavigator() {
         tabBarActiveTintColor: p.tabActive,
         tabBarInactiveTintColor: p.tabInactive,
         tabBarShowLabel: true,
+        tabBarItemStyle: {
+          paddingVertical: 0,
+        },
         tabBarLabelStyle: {
           fontFamily: mediumFont,
           fontSize: isXLargeScreen ? 13 : isLargeScreen ? 12 : isSmallScreen ? 10 : 11,
-          marginBottom: 2,
+          marginBottom: 0,
         },
         tabBarStyle: {
           width: '100%',

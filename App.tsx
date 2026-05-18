@@ -12,6 +12,10 @@ import MainTabNavigator from './src/navigation/MainTabNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
 import type { RootStackParamList } from './src/navigation/types';
 import SplashScreen from './src/screens/SplashScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
+import CountrySelectScreen from './src/screens/CountrySelectScreen';
+import { configureGoogleSignIn } from './src/services/googleAuth';
 import AppBackground from './src/layout/AppBackground';
 import { getPalette } from './src/theme/palette';
 import { useThemeStore } from './src/theme/themeStore';
@@ -23,6 +27,7 @@ function ThemedNavigation() {
   const colorScheme = useThemeStore(s => s.colorScheme);
   const p = getPalette(colorScheme);
   useEffect(() => {
+    configureGoogleSignIn();
     if (Platform.OS === 'android') {
       NativeModules.ImmersiveMode.enterImmersiveMode();
     }
@@ -53,6 +58,9 @@ function ThemedNavigation() {
           initialRouteName="SplashScreen"
         >
           <Stack.Screen name="SplashScreen" component={SplashScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="CountrySelect" component={CountrySelectScreen} />
           <Stack.Screen name="MainTabs" component={MainTabNavigator} />
         </Stack.Navigator>
       </AppBackground>

@@ -2,8 +2,10 @@ import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { isLargeScreen, isXLargeScreen, width } from '../utils/config';
 import { navigationRef } from '../navigation/navigationRef';
+import { useAuthStore } from '../stores/authStore';
 import { getPalette } from '../theme/palette';
 import { useThemeStore } from '../theme/themeStore';
+import { getUserAvatarSource } from '../utils/userAvatar';
 
 const logoSize = isXLargeScreen ? 150 : isLargeScreen ? 120 : width * 0.22;
 const profileIconSize = isXLargeScreen ? 56 : isLargeScreen ? 46 : 30;
@@ -13,7 +15,9 @@ const themeIconSize = isLargeScreen ? 24 : 22;
 export default function HeaderBar() {
   const colorScheme = useThemeStore(s => s.colorScheme);
   const toggleColorScheme = useThemeStore(s => s.toggleColorScheme);
+  const user = useAuthStore(s => s.user);
   const p = getPalette(colorScheme);
+  const avatarSource = getUserAvatarSource(user);
 
   const goHome = () => {
     if (navigationRef.isReady()) {
@@ -72,7 +76,7 @@ export default function HeaderBar() {
           onPress={goProfile}
         >
           <Image
-            source={require('../assets/profile.png')}
+            source={avatarSource}
             style={styles.profileIcon}
           />
         </TouchableOpacity>
@@ -107,5 +111,6 @@ const styles = StyleSheet.create({
   profileIcon: {
     width: profileIconSize,
     height: profileIconSize,
+    borderRadius: profileIconSize / 2,
   },
 });
